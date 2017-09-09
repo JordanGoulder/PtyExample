@@ -1,13 +1,10 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <linux/limits.h>
 #include <sys/time.h>
-#include <sys/select.h>
 
 #include "hexdump.h"
 #include "pty.h"
-
-ssize_t timed_read(int fd, void *buff, size_t count, struct timeval *timeout);
+#include "timed_read.h"
 
 int main(int argc, char argv[])
 {
@@ -51,22 +48,3 @@ int main(int argc, char argv[])
     return 0;
 }
 
-ssize_t timed_read(int fd, void *buff, size_t count, struct timeval *timeout)
-{
-    fd_set rfds;
-    int error;
-    struct timeval to;
-
-    to = *timeout;
-
-    FD_ZERO(&rfds);
-    FD_SET(fd, &rfds);
-
-    error = select(fd + 1, &rfds, NULL, NULL, &to);
-
-    if (error > 0) {
-        error = read(fd, buff, count);
-    }
-
-    return error;
-}
