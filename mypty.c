@@ -11,39 +11,27 @@
 
 #include "hexdump.h"
 
+int createPty();
+
 int main(int argc, char argv[])
 {
-    int fdMaster;
-    int fdSlave;
-    int error;
+    int fd;
     ssize_t count;
     unsigned char input[256];
 
     printf("Creating pseudo-terminal...\n");
 
-    fdMaster = posix_openpt(O_RDWR);
+    fd = createPty();
 
-    if (fdMaster < 0) {
-        fprintf(stderr, "Error %d on posix_openpt()\n", errno);
-        return 1;
+    if (fd < 0) {
+        fprintf(stderr, "Error creating pseudo-terminal.");
+        return -1;
     }
 
-    error = grantpt(fdMaster);
-    if (error != 0) {
-        fprintf(stderr, "Error %d on grantpt()\n", errno);
-        return 1;
-    }
-
-    error = unlockpt(fdMaster);
-    if (error != 0) {
-        fprintf(stderr, "Error %d on unlockpt()\n", errno);
-        return 1;
-    }
-
-    printf("Listening to pseudo-terminal: %s\n\n", ptsname(fdMaster));
+    printf("Listening to pseudo-terminal: %s\n\n", ptsname(fd));
 
     while (1) {
-        count = read(fdMaster, input, sizeof(input) - 1);
+        count = read(fd, input, sizeof(input) - 1);
         if (count > 0) {
             printf("Received %d byte%s\n", count, count == 1 ? ":" : "s:");
             hexdump(input, count);
@@ -55,5 +43,32 @@ int main(int argc, char argv[])
     }
 
     return 0;
+}
+
+int createPty()
+{
+    int error;
+    int fd;
+
+    fd = posix_openpt(O_RDWR);
+
+    if (fd < 0) {
+        fprintf(stderr, "Error %d on posix_openpt()\n", errno);
+        return -1;
+    }
+
+    error = grantpt(fd);
+    if (error != 0) {
+        fprintf(stderr, "Error %d on grantpt()\n", errno);
+        return -1;
+    }
+
+    error = unlockpt(fd);
+    if (error != 0) {
+        fprintf(stderr, "Error %d on unlockpt()\n", errno);
+        return -1;
+    }
+
+    return fd;
 }
 
