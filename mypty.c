@@ -19,9 +19,7 @@ int main(int argc, char argv[])
     ssize_t count;
     unsigned char input[256];
 
-    printf("Before creating pseudo-terminal...\n");
-    system("ls -l /dev/pts");
-    putchar('\n');
+    printf("Creating pseudo-terminal...\n");
 
     fdMaster = posix_openpt(O_RDWR);
 
@@ -42,11 +40,7 @@ int main(int argc, char argv[])
         return 1;
     }
 
-    printf("After creating pseudo-terminal...\n");
-    system("ls -l /dev/pts");
-    putchar('\n');
-
-    printf("The slave side is named: %s\n\n", ptsname(fdMaster));
+    printf("Listening to pseudo-terminal: %s\n\n", ptsname(fdMaster));
 
     while (1) {
         count = read(fdMaster, input, sizeof(input) - 1);
