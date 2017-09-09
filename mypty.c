@@ -5,8 +5,11 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <ctype.h>
 #define __USE_BSD
 #include <termios.h>
+
+void hexdump(unsigned char buff[], int len);
 
 int main(int argc, char argv[])
 {
@@ -14,7 +17,7 @@ int main(int argc, char argv[])
     int fdSlave;
     int error;
     ssize_t count;
-    char input[150];
+    unsigned char input[256];
 
     printf("Before creating pseudo-terminal...\n");
     system("ls -l /dev/pts");
@@ -43,23 +46,67 @@ int main(int argc, char argv[])
     system("ls -l /dev/pts");
     putchar('\n');
 
-    printf("The slave side is named: %s\n", ptsname(fdMaster));
+    printf("The slave side is named: %s\n\n", ptsname(fdMaster));
 
     while (1) {
         count = read(fdMaster, input, sizeof(input) - 1);
         if (count > 0) {
-            input[count] = '\0';
-            printf("Received %d bytes\n", count);
-            printf("'%s'\n", input);
-            for (int i = 0; i < count; i++) {
-                printf("%02X ", input[i]);
-            }
+            printf("Received %d byte%s\n", count, count == 1 ? ":" : "s:");
+            hexdump(input, count);
             putchar('\n');
         } else {
-            printf("Read 0 bytes. Exiting.\n");
+            puts("PTY closed.");
             break;
         }
     }
 
     return 0;
+}
+
+void hexdump(unsigned char buff[], int len)
+{
+    int offset = 0;
+    int total = len;
+
+    while (len > 0) {
+
+        printf("%08x ", offset);
+        for (int i = 0; i < 8; i++)
+        {
+            if (i < len) {
+                printf(" %02x", buff[offset + i]);
+            } else {
+                printf("   ");
+            }
+        }
+
+        putchar(' ');
+
+        for (int i = 0; i < 8; i++)
+        {
+            if ((i + 8) < len) {
+                printf(" %02x", buff[offset + i]);
+            } else {
+                printf("   ");
+            }
+        }
+
+        printf("  |");
+        for (int i = 0; i < 16; i++) {
+            if (i < len) {
+                if (isprint(buff[offset + i])) {
+                    putchar(buff[offset + i]);
+                } else {
+                    putchar('.');
+                }
+            } else {
+                break;
+            }
+        }
+        printf("|\n");
+
+        len -= 16;
+        offset += 16;
+    }
+    printf("%08x\n", total);
 }
