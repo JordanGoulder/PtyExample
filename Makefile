@@ -1,6 +1,6 @@
-TARGET=mypty
+TARGET	= mypty
 
-SRCS=mypty.c hexdump.c
+SRCS	= mypty.c hexdump.c pty.c
 
 OBJS=$(SRCS:.c=.o)
 

@@ -1,34 +1,27 @@
-#define _XOPEN_SOURCE 600
-#define _DEFAULT_SOURCE
-#include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <ctype.h>
-#define __USE_BSD
-#include <termios.h>
+#include <unistd.h>
+#include <linux/limits.h>
 
 #include "hexdump.h"
-
-int createPty();
+#include "pty.h"
 
 int main(int argc, char argv[])
 {
     int fd;
     ssize_t count;
     unsigned char input[256];
+    char ptyName[PATH_MAX];
 
     printf("Creating pseudo-terminal...\n");
 
-    fd = createPty();
+    fd = createPty(ptyName, sizeof(ptyName));
 
     if (fd < 0) {
         fprintf(stderr, "Error creating pseudo-terminal.");
         return -1;
     }
 
-    printf("Listening to pseudo-terminal: %s\n\n", ptsname(fd));
+    printf("Listening to pseudo-terminal: %s\n\n", ptyName);
 
     while (1) {
         count = read(fd, input, sizeof(input) - 1);
@@ -43,32 +36,5 @@ int main(int argc, char argv[])
     }
 
     return 0;
-}
-
-int createPty()
-{
-    int error;
-    int fd;
-
-    fd = posix_openpt(O_RDWR);
-
-    if (fd < 0) {
-        fprintf(stderr, "Error %d on posix_openpt()\n", errno);
-        return -1;
-    }
-
-    error = grantpt(fd);
-    if (error != 0) {
-        fprintf(stderr, "Error %d on grantpt()\n", errno);
-        return -1;
-    }
-
-    error = unlockpt(fd);
-    if (error != 0) {
-        fprintf(stderr, "Error %d on unlockpt()\n", errno);
-        return -1;
-    }
-
-    return fd;
 }
 
