@@ -11,6 +11,7 @@ int main(int argc, char argv[])
 
     printf("Before creating pseudo-terminal...\n");
     system("ls -l /dev/pts");
+    putchar('\n');
 
     fdMaster = posix_openpt(O_RDWR);
 
@@ -33,6 +34,7 @@ int main(int argc, char argv[])
 
     printf("After creating pseudo-terminal...\n");
     system("ls -l /dev/pts");
+    putchar('\n');
 
     printf("The slave side is named: %s\n", ptsname(fdMaster));
 }
