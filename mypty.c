@@ -13,7 +13,7 @@ int main(int argc, char argv[])
     int fdMaster;
     int fdSlave;
     int error;
-    int count;
+    ssize_t count;
     char input[150];
 
     printf("Before creating pseudo-terminal...\n");
@@ -47,8 +47,8 @@ int main(int argc, char argv[])
 
     while (1) {
         count = read(fdMaster, input, sizeof(input) - 1);
-        input[count] = '\0';
         if (count > 0) {
+            input[count] = '\0';
             printf("Received %d bytes\n", count);
             printf("'%s'\n", input);
             for (int i = 0; i < count; i++) {
