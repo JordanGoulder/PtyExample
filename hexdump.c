@@ -25,7 +25,7 @@ void hexdump(unsigned char buff[], int len)
         for (int i = 0; i < 8; i++)
         {
             if ((i + 8) < len) {
-                printf(" %02x", buff[offset + i]);
+                printf(" %02x", buff[offset + i + 8]);
             } else {
                 printf("   ");
             }
